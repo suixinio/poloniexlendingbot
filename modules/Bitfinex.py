@@ -20,7 +20,7 @@ class Bitfinex(ExchangeApi):
         self.log = log
         self.lock = threading.RLock()
         self.req_per_period = 1
-        self.default_req_period = 1000  # milliseconds, 1000 = 60/min
+        self.default_req_period = 5000  # milliseconds, 1000 = 60/min
         self.req_period = self.default_req_period
         self.req_time_log = RingBuffer(self.req_per_period)
         self.url = 'https://api.bitfinex.com'
@@ -110,11 +110,13 @@ class Bitfinex(ExchangeApi):
         return self._request('post', payload['request'], signed_payload, verify)
 
     @ExchangeApi.synchronized
-    def _get(self, command):
+    def _get(self, command, apiVersion=None):
         # keep the request per minute limit
         self.limit_request_rate()
 
-        request = '/{}/{}'.format(self.apiVersion, command)
+        if apiVersion is None:
+            apiVersion = self.apiVersion
+        request = '/{}/{}'.format(apiVersion, command)
         return self._request('get', request)
 
     def _get_symbols(self):
@@ -277,6 +279,8 @@ class Bitfinex(ExchangeApi):
                     usd_min = 50
                     cur_min = usd_min
                     if currency != 'USD':
+			if currency == 'EUR':
+                            cur_min = usd_min / float(self.return_ticker()['USD_' + 'BTC']['lowestAsk']) * float(self.return_ticker()['EUR_' + 'BTC']['lowestAsk'])
                         cur_min = usd_min / float(self.return_ticker()['USD_' + currency]['lowestAsk'])
 
                     raise Exception("Error create_loan_offer: Amount must be at least " + str(cur_min) + " " + currency)
@@ -352,3 +356,12 @@ class Bitfinex(ExchangeApi):
                     })
 
         return history
+
+    def get_frr(self, currency):
+        """
+        Retrieves the flash return rate for the given currency
+        https://bitfinex.readme.io/v2/reference#rest-public-platform-status
+        """
+        command = 'tickers?symbols=f' + currency
+        resp = self._get(command, 'v2')
+        return float(resp[0][1])

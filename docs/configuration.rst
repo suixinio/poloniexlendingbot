@@ -98,6 +98,19 @@ Min and Max Rates
     - Allowed range: 0.0031 to 5 percent
     - 2% is the default value offered by the exchange, but there is little reason not to set it higher if you feel optimistic.
 
+- ``frrasmin`` tells the bot whether or not to use the `flash return rate <https://support.bitfinex.com/hc/en-us/articles/213919009-What-is-the-Flash-Return-Rate->`_ for ``mindailyrate``.
+    - Default value: False
+    - Allowed range: True or False
+    - This will only be used if the frr is above your ``mindailyrate``. So which ever is highest at the time of the loan will be used.
+    - This options only works on Bitfinex.
+
+- ``frrdelta`` tells the bot whether or not to use the `flash return rate <https://support.bitfinex.com/hc/en-us/articles/115003284729-What-is-the-FRR-Delta->`
+    - Default value: 0.0000
+    - Allowed range: 0.0000 -/+ 7   
+    - This will only be used if the frr is above your ``mindailyrate``. So which ever is highest at the time of the loan will be used.
+    - This options only works on Bitfinex.
+
+
 Spreading your Lends
 --------------------
 
@@ -216,7 +229,7 @@ Very few situations require you to change these settings.
     - Allowed values: True or False. Commented defaults to True
     - This hides your coins from appearing in walls.
     - Allows you to catch a higher rate if it spikes past your ``mindailyrate``.
-    - Not necessarily recommended if used with ``analyseCurrencies`` with an aggressive ``lendingStyle``, as the bot may miss short-lived rate spikes.
+    - Not necessarily recommended if used with ``analyseCurrencies`` with an aggressive ``lendingStyle``, as the bot may miss short-lived rate spikes. This is not the case if using ``MACD`` with ``daily_min_method``. In that case it is recommended to set ``hideCoins`` to True.
     - If you are using the ``analyseCurrencies`` option, you will likely see a lot of ``Not lending BTC due to rate below 0.9631%`` type messages in the logs. This is normal.
 
 - ``endDate`` Bot will try to make sure all your loans are done by this date so you can withdraw or do whatever you need.
@@ -267,15 +280,7 @@ This can be configured in one of two ways.
 
 **Coincfg dictionary**
 
-- ``coincfg`` is in the form of a dictionary and allows for advanced, per-coin options.
-
-    - Default value: Commented out, uncomment to enable.
-    - Format: ``["COINTICKER:MINLENDRATE:ENABLED?:MAXTOLEND:MAXPERCENTTOLEND:MAXTOLENDRATE","CLAM:0.6:1:0:.75:.1",...]``
-    - COINTICKER refers to the ticker of the coin, ex. BTC, CLAM, MAID, DOGE.
-    - MINLENDRATE is that coins minimum lending rate, overrides the global setting. Follows the limits of ``minlendrate``
-    - ENABLED? refers to a value of ``0`` if the coin is disabled and will no longer lend. Any positive integer will enable lending for the coin.
-    - MAXTOLEND, MAXPERCENTTOLEND, and MAXTOLENDRATE refer to their respective settings above, but are unique to the specified coin specifically.
-    - There can be as many different coins as you want in coincfg, but each coin may only appear once.
+- ``coinconfig`` is now REMOVED, please switch to using separate coin sections as described below.
 
 **Separate coin sections**
 
@@ -296,6 +301,8 @@ Configuration should look like this::
     gapmode = raw
     gapbottom = 10
     gaptop = 20
+    frrasmin = true
+    frrdelta = 0.000000
 
 
 Advanced logging and Web Display
